@@ -46,14 +46,14 @@ class CNN(nn.Module):
         embed_x = embed_x.permute(0, 1, 3, 2)  # batch_size * sentence_num * embedding_size * sentence_len
 
         sentence_outs = []
-        for _ in range(self.config.batch_size):
+        for _ in range(embed_x.shape[0]):
             sentence_outs.append(self.word_conv(embed_x[_]))
         # sentence_out = self.word_conv(embed_x)  # batch_size * sentence_num * sentence_feature_size * 1
         sentence_out = torch.stack(sentence_outs, dim=0)
-        print(sentence_out.shape)
+        # print(sentence_out.shape)
         # sentence_out = sentence_out.view(-1, sentence_out.size(1))  # batch_size * sentence_num * sentence_feature_size
         sentence_out = torch.squeeze(sentence_out, dim=3)
-        print(sentence_out.shape)
+        # print(sentence_out.shape)
         sentence_out = sentence_out.permute(0, 2, 1)  # batch_size * sentence_feature_size * sentence_num
 
         essay_out = self.sentence_conv(sentence_out)  # batch_size * sentence_feature_size * 1

@@ -1,11 +1,11 @@
 class Config:
     is_training = True
-    epoch_num = 100
-    batch_size = 10
+    epoch_num = 10
+    batch_size = 100
     lr = 0.001
     dropout_rate = 0.3
 
-    vocab_size = 35185
+    vocab_size = 36000
     max_sentence_len = 200
     max_sentence_num = 87
 
