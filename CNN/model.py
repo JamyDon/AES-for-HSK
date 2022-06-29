@@ -12,10 +12,8 @@ import torch.nn.functional as F
 class CNN(nn.Module):
     def __init__(self, config):
         super(CNN, self).__init__()
-        self.is_training = True
+        self.is_training = config.is_training
         self.dropout_rate = config.dropout_rate
-        self.use_element = config.use_element
-        self.config = config
 
         self.embedding = nn.Embedding(num_embeddings=config.vocab_size,
                                       embedding_dim=config.embedding_size)
