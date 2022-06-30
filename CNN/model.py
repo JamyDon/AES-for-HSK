@@ -34,7 +34,7 @@ class CNN(nn.Module):
                                                kernel_size=config.max_sentence_num - config.sentence_conv_size + 1))
 
         self.fc = nn.Linear(in_features=config.sentence_feature_size,
-                            out_features=1)
+                            out_features=config.essay_grade_num)
 
         # if os.path.exists(config.embedding_path) and config.is_training and config.is_pretrain:
         #     print("Loading pretrained embedding...")
@@ -48,18 +48,17 @@ class CNN(nn.Module):
         sentence_outs = []
         for _ in range(embed_x.shape[0]):
             sentence_outs.append(self.word_conv(embed_x[_]))
-        # sentence_out = self.word_conv(embed_x)  # batch_size * sentence_num * sentence_feature_size * 1
         sentence_out = torch.stack(sentence_outs, dim=0)
-        # print(sentence_out.shape)
-        # sentence_out = sentence_out.view(-1, sentence_out.size(1))  # batch_size * sentence_num * sentence_feature_size
         sentence_out = torch.squeeze(sentence_out, dim=3)
-        # print(sentence_out.shape)
         sentence_out = sentence_out.permute(0, 2, 1)  # batch_size * sentence_feature_size * sentence_num
 
         essay_out = self.sentence_conv(sentence_out)  # batch_size * sentence_feature_size * 1
         essay_out = essay_out.view(-1, essay_out.size(1))  # batch_size * sentence_feature_size
 
         essay_out = F.dropout(input=essay_out, p=self.dropout_rate)
-        essay_scores = self.fc(essay_out)  # batch_size
+        essay_out = self.fc(essay_out)  # batch_size * essay_grade_num
+        # essay_out = torch.sigmoid(essay_out)
+        out = torch.squeeze(essay_out, dim=-1)
+        # out = torch.softmax(essay_out, dim=-1)
 
-        return essay_scores
+        return out
