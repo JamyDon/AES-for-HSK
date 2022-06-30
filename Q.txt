@@ -1,1 +1,2 @@
-[unfinished]在test.ipynb里面，过embedding层出现问题，跑不过。
+[finished]在test.ipynb里面，过embedding层出现问题，跑不过。
+[unfinished]tz现在我的一个问题是，在训练之后，最后一个batch可以做到100%，但是其他的batch越来越低。
