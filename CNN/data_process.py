@@ -85,7 +85,9 @@ def divide_sentence(filename):
             while len(sentences) < max_sentence_num:
                 sentences.append([0 for _ in range(max_sentence_len)])
             essays.append(sentences)
-            scores.append(eval(row[4]))
+            # score = [0 for _ in range(10)]
+            # score[int(eval(row[4])) // 10] = 1
+            scores.append(int(eval(row[4])) // 10)
 
         torch_essays = torch.tensor(essays)
         torch_scores = torch.tensor(scores)
