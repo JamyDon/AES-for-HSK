@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.utils.data as data
 from model import CNN
 from config import Config
-from data import data_process
+import data_process
 
 
 def train(input_data, label):
@@ -27,6 +27,8 @@ def train(input_data, label):
     for epoch in range(config.epoch_num):
         for step, (batch_input, batch_label) in enumerate(loader):
             out = cnn(batch_input)
+            print(out)
+            print(batch_label)
             loss = loss_func(out, batch_label)
             print('step ', step, ', epoch ', epoch, 'loss = ', loss,sep="")
             optimizer.zero_grad()
@@ -36,5 +38,5 @@ def train(input_data, label):
     torch.save(cnn.state_dict(), 'cnn.pt')
 
 
-input_data, label = data_process.divide_sentence('../data/split.csv')
+input_data, label = data_process.divide_sentence('./data/split.csv')
 train(input_data=input_data, label=label)
