@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.utils.data as data
 from model import CNN
 from config import Config
-from data import data_process
+import data_process
 
 
 def train(input_data, label):
@@ -31,6 +31,8 @@ def train(input_data, label):
                 continue
             batch_input, batch_label = batch_input.to(device), batch_label.to(device)
             out = cnn(batch_input)
+            print(out)
+            print(batch_label)
             loss = loss_func(out, batch_label)
             correct_cnt = 0
             for _ in range(batch_label.shape[0]):
@@ -45,5 +47,5 @@ def train(input_data, label):
     torch.save(cnn.state_dict(), 'cnn.pt')
 
 
-input_data, label = data_process.divide_sentence('../data/split.csv')
+input_data, label = data_process.divide_sentence('./data/split.csv')
 train(input_data=input_data, label=label)
