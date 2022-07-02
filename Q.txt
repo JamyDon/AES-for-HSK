@@ -1,3 +1,5 @@
 [忘了]在test.ipynb里面，过embedding层出现问题，跑不过。
 [unfinished]RNN做得还就不是内个很好。
 [忘了]尝试使用kappa值评估结果。
+[unfinished](生僻词问题from 2016RNN原文)The vocabulary is the 4,000 most frequent words in the training data and all other words are mapped to a special token that represents unknown words.
+[unfinished](章、句长短不一问题from 2016RNN原文)To eliminate the effect of padding tokens during training, we mask them to prevent the network from miscalculating the gradients.
