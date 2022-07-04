@@ -4,6 +4,11 @@ import torch.utils.data as data
 from model import CNN
 from config import Config
 import data_process
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+from kappa import quadratic_weighted_kappa
 
 
 def train(input_data, label):
@@ -36,14 +41,18 @@ def train(input_data, label):
             # print(batch_label)
             loss = loss_func(out, batch_label)
             correct_cnt = 0
+            y_pred = []
             for _ in range(batch_label.shape[0]):
+                y_pred.append(torch.argmax(out[_], dim=-1))
                 if torch.argmax(out[_], dim=-1) == batch_label[_]:
                     correct_cnt += 1
             acc = correct_cnt / batch_label.shape[0]
+            qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
             if step == 88:
-                print('epoch ', epoch, ', test_loss = ', format(loss.item(), '.2f'), ', test_acc = ', acc, sep='')
+                print('epoch ', epoch, ', test_loss = ', format(loss.item(), '.2f'), ', test_acc = ', acc,
+                      ', test_qwk = ', qwk, sep='')
                 continue
-            print('epoch ', epoch, ', step ', step, ', loss = ', format(loss.item(), '.2f'), ', acc = ', acc, sep="")
+            print('epoch ', epoch, ', step ', step, ', loss = ', format(loss.item(), '.2f'), ', qwk = ', qwk, sep="")
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

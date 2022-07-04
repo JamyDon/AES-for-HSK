@@ -1,5 +1,6 @@
 import csv
 import torch
+import pkuseg
 
 
 # end of sentence
@@ -34,23 +35,24 @@ def analyse(filename):
         return max_cnt, max_len
 
 
-def build_vocab(filename):
-    with open(filename, encoding='utf-8') as f:
-        reader = csv.reader(f)
-        next(reader)
+def build_vocab(filenames):
+    vocab = dict()
+    vocab_cnt = 0
 
-        vocab = dict()
-        vocab_cnt = 0
+    for filename in filenames:
+        with open(filename, encoding='utf-8') as f:
+            reader = csv.reader(f)
+            next(reader)
 
-        for row in reader:
-            for word in eval(row[2]):
-                if word in eos:
-                    continue
-                elif vocab.get(word, -1) == -1:
-                    vocab_cnt += 1
-                    vocab[word] = vocab_cnt
+            for row in reader:
+                for word in eval(row[2]):
+                    if word in eos:
+                        continue
+                    elif vocab.get(word, -1) == -1:
+                        vocab_cnt += 1
+                        vocab[word] = vocab_cnt
 
-        return vocab, vocab_cnt
+    return vocab, vocab_cnt
 
 
 def divide_sentence(filename):
@@ -85,11 +87,28 @@ def divide_sentence(filename):
             while len(sentences) < max_sentence_num:
                 sentences.append([0 for _ in range(max_sentence_len)])
             essays.append(sentences)
-            # score = [0 for _ in range(10)]
-            # score[int(eval(row[4])) // 10] = 1
             scores.append(int(eval(row[4])) // 5)
 
         torch_essays = torch.tensor(essays)
         torch_scores = torch.tensor(scores)
 
         return torch_essays, torch_scores
+
+
+def split(filename):
+    seg = pkuseg.pkuseg()
+
+    with open(filename, encoding='utf-8') as f:
+        new_filename = 'split_' + filename
+        with open(new_filename, mode='a', newline='', encoding='utf-8') as nf:
+            writer = csv.writer(nf)
+            reader = csv.reader(f)
+            next(reader)
+
+            for row in reader:
+                essay = row[1]
+                score = row[3]
+                split_essay = seg.cut(essay)
+
+                new_row = [split_essay, score]
+                writer.writerow(new_row)
