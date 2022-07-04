@@ -5,7 +5,6 @@ import torch.nn as nn
 class RNN(nn.Module):
     def __init__(self, config):
         super(RNN, self).__init__()
-        self.is_training = config.is_training
         self.dropout_rate = config.dropout_rate
         self.config = config
 
@@ -20,7 +19,7 @@ class RNN(nn.Module):
                           dropout=config.dropout_rate)
 
         self.fc = nn.Linear(in_features=config.hidden_size * 2,
-                            out_features=config.essay_grade_num)
+                            out_features=1)
 
     # x: shape(batch_size, essay_len)
     def forward(self, x):
@@ -31,6 +30,8 @@ class RNN(nn.Module):
         rnn_out = torch.sum(rnn_out, dim=1)   # batch_size * hidden_size
         rnn_out = torch.mul(rnn_out, 1 / self.config.max_essay_len)
 
-        out = self.fc(rnn_out)   # batch_size * essay_grade_num
+        out = self.fc(rnn_out)   # batch_size * 1
+        out = torch.squeeze(out)
+        out = torch.sigmoid(out)
 
         return out
