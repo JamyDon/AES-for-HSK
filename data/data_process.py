@@ -20,6 +20,10 @@ def split(filename):
             for row in reader:
                 essay = row[1]
                 score = row[3]
+
+                if score == '':
+                    continue
+
                 split_essay = seg.cut(essay)
 
                 new_row = [split_essay, score]
