@@ -12,11 +12,11 @@ class RNN(nn.Module):
                                       embedding_dim=config.embedding_size)
 
         self.rnn = nn.RNN(input_size=config.embedding_size,
-                          hidden_size=config.hidden_size,
-                          batch_first=True,
-                          num_layers=2,
-                          bidirectional=True,
-                          dropout=config.dropout_rate)
+                           hidden_size=config.hidden_size,
+                           batch_first=True,
+                           num_layers=config.rnn_num_layers,
+                           bidirectional=config.rnn_bidirectional,
+                           dropout=config.dropout_rate)
 
         self.fc = nn.Linear(in_features=config.hidden_size * 2,
                             out_features=1)

@@ -1,5 +1,5 @@
 class config:
-    epoch_num = 20
+    epoch_num = 10
     batch_size = 100
     lr = 0.001
     dropout_rate = 0.5
@@ -9,5 +9,7 @@ class config:
     max_essay_len = 554
 
     embedding_size = 128
+    rnn_num_layers = 1
+    rnn_bidirectional = True
     hidden_size = 128
     essay_grade_num = 20
