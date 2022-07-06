@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.utils.data as data
-from model import RNN
+from model import AttentionNN
 from config import config
 import data_process
 import os
@@ -9,6 +9,9 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 from kappa import quadratic_weighted_kappa
+
+
+model_path = 'attention_nn.pkl'
 
 
 def train(train_input, train_label, value_input, value_label):
@@ -22,13 +25,13 @@ def train(train_input, train_label, value_input, value_label):
         num_workers=0,
     )
 
-    rnn = RNN(config)
-    print(rnn)
-    total_params = sum(p.numel() for p in rnn.parameters())
+    network = AttentionNN(config)
+    print(network)
+    total_params = sum(p.numel() for p in network.parameters())
     print('total_params = ', total_params, sep='')
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    rnn = rnn.to(device)
-    optimizer = torch.optim.Adam(rnn.parameters(), lr=config.lr)
+    network = network.to(device)
+    optimizer = torch.optim.Adam(network.parameters(), lr=config.lr)
     loss_func = nn.MSELoss()
 
     for epoch in range(config.epoch_num):
@@ -42,7 +45,7 @@ def train(train_input, train_label, value_input, value_label):
 
             step_cnt += 1
             batch_input, batch_label = batch_input.to(device), batch_label.to(device)
-            out = rnn(batch_input)
+            out = network(batch_input)
 
             loss = loss_func(out, batch_label)
             train_loss += loss.item()
@@ -58,9 +61,9 @@ def train(train_input, train_label, value_input, value_label):
 
             qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
             train_qwk += qwk
-            # print('epoch ', epoch, ', step ', step,
-            #       ', loss = ', format(100*loss.item(), '.2f'),
-            #       ', qwk = ', format(qwk, '.2f'), sep='')
+            # print('epoch ', epoch+1, ', step ', step+1,
+            #       ', loss = ', format(100*loss.item(), '.3f'),
+            #       ', qwk = ', format(qwk, '.3f'), sep='')
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -69,12 +72,15 @@ def train(train_input, train_label, value_input, value_label):
         train_loss *= 100
         train_qwk /= step_cnt
         print('epoch ', epoch+1,
-              ', train_loss = ', format(train_loss, '.2f'),
-              ', train_qwk = ', format(train_qwk, '.2f'), sep='')
+              ', train_loss = ', format(train_loss, '.3f'),
+              ', train_qwk = ', format(train_qwk, '.3f'), sep='')
 
         with torch.no_grad():
             value_input, value_label = value_input.to(device), value_label.to(device)
-            value_out = rnn(value_input)
+            value_out = network(value_input)
+
+            value_loss = loss_func(value_out, value_label) * 100
+
             value_out = torch.mul(value_out, config.essay_grade_num)
             value_out = torch.floor(value_out)
             y_pred = value_out.long()
@@ -84,16 +90,17 @@ def train(train_input, train_label, value_input, value_label):
 
             qwk = quadratic_weighted_kappa(y_pred, value_label, config.essay_grade_num)
             print('epoch ', epoch+1,
-                  ', value_qwk = ', format(qwk, '.2f'), sep='')
+                  ', value_loss = ', format(value_loss, '.3f'),
+                  ', value_qwk = ', format(qwk, '.3f'), sep='')
             print('--------------------------------------------')
 
             if qwk > max_value_qwk:
                 max_value_qwk = qwk
-                torch.save(rnn, 'rnn.pkl')
+                torch.save(network, model_path)
 
 
 def test(test_input, test_label):
-    rnn = torch.load('rnn.pkl')
+    rnn = torch.load(model_path)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     rnn = rnn.to(device)
 
@@ -108,7 +115,7 @@ def test(test_input, test_label):
         #     y_pred.append(pred_score)
 
         qwk = quadratic_weighted_kappa(y_pred, test_label, config.essay_grade_num)
-        print('test_qwk = ', format(qwk, '.2f'), sep='')
+        print('test_qwk = ', format(qwk, '.3f'), sep='')
         print('--------------------------------------------')
 
 

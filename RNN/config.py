@@ -9,6 +9,7 @@ class config:
     max_essay_len = 554
 
     embedding_size = 128
+    d_model = 128
     rnn_num_layers = 1
     rnn_bidirectional = True
     hidden_size = 128
