@@ -1,0 +1,8 @@
+att-rnn::
+emb, dmod, hid, layer, qwk
+128, 128, 128, 3, 0.633
+
+
+att-lstm::
+emb, dmod, hid, layer, qwk
+128, 128, 128, 3, 0.609

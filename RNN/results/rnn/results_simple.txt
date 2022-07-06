@@ -1,0 +1,13 @@
+classification::
+embedding_size, hidden_size = 64, drop_out = 0.5, layer = 2, qwk = 0.52
+-------------------------------------, drop_out = 0.3, ----------, qwk = 0.57
+
+embedding_size, hidden_size = 128, drop_out = 0.3, --------, qwk = 0.58
+
+regression::
+embedding_size, hidden_size = 128, drop_out = 0.5, layer = 2, qwk = 0.61
+--------------------------------------------------------, layer = 3, qwk = ?
+
+LTSM::
+32, 32, 0.5, 1, qwk = 0.62
+-----------, 2, qwk = 0.57
