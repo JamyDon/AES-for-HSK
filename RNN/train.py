@@ -101,6 +101,7 @@ def train(train_input, train_label, value_input, value_label):
                 out = torch.mul(out, config.essay_grade_num)
                 out = torch.floor(out)
                 y_pred = out.long()
+                batch_label = torch.mul(batch_label, config.essay_grade_num).long()
                 qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
                 qwk_sum += qwk
 
@@ -147,6 +148,7 @@ def test(test_input, test_label):
             out = torch.mul(out, config.essay_grade_num)
             out = torch.floor(out)
             y_pred = out.long()
+            batch_label = torch.mul(batch_label, config.essay_grade_num).long()
             qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
             qwk_sum += qwk
 
@@ -160,6 +162,8 @@ def main():
     train_input, train_label, value_input, value_label, test_input, test_label = data_process.load_data()
 
     train_label = torch.mul(train_label, 1 / config.essay_grade_num)
+    value_label = torch.mul(value_label, 1 / config.essay_grade_num)
+    test_label = torch.mul(test_label, 1 / config.essay_grade_num)
 
     train(train_input=train_input,
           train_label=train_label,
