@@ -1,5 +1,5 @@
 class config:
-    epoch_num = 10
+    epoch_num = 20
     batch_size = 100
     lr = 0.001
     dropout_rate = 0.5
