@@ -77,18 +77,36 @@ def train(train_input, train_label, value_input, value_label):
 
         with torch.no_grad():
             value_input, value_label = value_input.to(device), value_label.to(device)
-            value_out = network(value_input)
 
-            value_loss = loss_func(value_out, value_label) * 100
+            value_dataset = data.TensorDataset(value_input, value_label)
+            value_loader = data.DataLoader(
+                dataset=value_dataset,
+                batch_size=config.batch_size,
+                shuffle=True,
+                num_workers=0,
+            )
 
-            value_out = torch.mul(value_out, config.essay_grade_num)
-            value_out = torch.floor(value_out)
-            y_pred = value_out.long()
-            # for _ in range(value_label.shape[0]):
-            #     pred_score = config.essay_grade_num * torch.argmax(value_out[_], dim=-1)
-            #     y_pred.append(pred_score.long())
+            step_cnt = 0
+            loss_sum = 0
+            qwk_sum = 0
 
-            qwk = quadratic_weighted_kappa(y_pred, value_label, config.essay_grade_num)
+            for step, (batch_input, batch_label) in enumerate(value_loader):
+                if batch_label.shape[0] < config.batch_size:
+                    continue
+
+                step_cnt += 1
+                batch_input, batch_label = batch_input.to(device), batch_label.to(device)
+                out = network(batch_input)
+                loss_sum += loss_func(out, batch_label)
+                out = torch.mul(out, config.essay_grade_num)
+                out = torch.floor(out)
+                y_pred = out.long()
+                qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
+                qwk_sum += qwk
+
+            value_loss = loss_sum / step_cnt
+            qwk = qwk_sum / step_cnt
+
             print('epoch ', epoch+1,
                   ', value_loss = ', format(value_loss, '.3f'),
                   ', value_qwk = ', format(qwk, '.3f'), sep='')
@@ -100,21 +118,40 @@ def train(train_input, train_label, value_input, value_label):
 
 
 def test(test_input, test_label):
-    rnn = torch.load(model_path)
+    network = torch.load(model_path)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    rnn = rnn.to(device)
+    network = network.to(device)
 
     with torch.no_grad():
         test_input, test_label = test_input.to(device), test_label.to(device)
-        test_out = rnn(test_input)
-        test_out = torch.mul(test_out, config.essay_grade_num)
-        test_out = torch.floor(test_out)
-        y_pred = test_out.long()
-        # for _ in range(test_label.shape[0]):
-        #     pred_score = torch.argmax(test_out[_], dim=-1) * config.essay_grade_num
-        #     y_pred.append(pred_score)
 
-        qwk = quadratic_weighted_kappa(y_pred, test_label, config.essay_grade_num)
+        test_dataset = data.TensorDataset(test_input, test_label)
+        test_loader = data.DataLoader(
+            dataset=test_dataset,
+            batch_size=config.batch_size,
+            shuffle=True,
+            num_workers=0,
+        )
+
+        step_cnt = 0
+        loss_sum = 0
+        qwk_sum = 0
+
+        for step, (batch_input, batch_label) in enumerate(test_loader):
+            if batch_label.shape[0] < config.batch_size:
+                continue
+
+            step_cnt += 1
+            batch_input, batch_label = batch_input.to(device), batch_label.to(device)
+            out = network(batch_input)
+            out = torch.mul(out, config.essay_grade_num)
+            out = torch.floor(out)
+            y_pred = out.long()
+            qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
+            qwk_sum += qwk
+
+        qwk = qwk_sum / step_cnt
+
         print('test_qwk = ', format(qwk, '.3f'), sep='')
         print('--------------------------------------------')
 

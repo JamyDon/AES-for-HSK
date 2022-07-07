@@ -61,7 +61,8 @@ class AttentionNN(nn.Module):
                            hidden_size=config.hidden_size,
                            batch_first=True,
                            num_layers=3,
-                           bidirectional=True)
+                           bidirectional=True,
+                           dropout=config.dropout_rate)
 
         self.fc = nn.Linear(in_features=config.hidden_size * 2,
                             out_features=1)
