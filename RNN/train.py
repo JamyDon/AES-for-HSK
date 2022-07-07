@@ -105,7 +105,7 @@ def train(train_input, train_label, value_input, value_label):
                 qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
                 qwk_sum += qwk
 
-            value_loss = loss_sum / step_cnt
+            value_loss = loss_sum / step_cnt * 100
             qwk = qwk_sum / step_cnt
 
             print('epoch ', epoch+1,
