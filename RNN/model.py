@@ -60,8 +60,8 @@ class AttentionNN(nn.Module):
         self.rnn = nn.LSTM(input_size=config.d_model,
                            hidden_size=config.hidden_size,
                            batch_first=True,
-                           num_layers=3,
-                           bidirectional=True,
+                           num_layers=config.rnn_num_layers,
+                           bidirectional=config.rnn_bidirectional,
                            dropout=config.dropout_rate)
 
         self.fc = nn.Linear(in_features=config.hidden_size * 2,
