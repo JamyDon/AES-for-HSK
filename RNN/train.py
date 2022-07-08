@@ -11,7 +11,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 from kappa import quadratic_weighted_kappa
 
 
-model_path = 'attention_nn.pkl'
+model_path_loss = 'attention_nn_loss.pkl'
+model_path_qwk = 'attention_nn_qwk.pkl'
 
 
 def train(train_input, train_label, value_input, value_label):
@@ -116,54 +117,54 @@ def train(train_input, train_label, value_input, value_label):
                   ', value_qwk = ', format(qwk, '.3f'), sep='')
             print('--------------------------------------------')
 
-            if config.loss_first == True:
-                if value_loss < min_value_loss:
-                    min_value_loss = value_loss
-                    torch.save(network, model_path)
-            else:
-                if qwk > max_value_qwk:
-                    max_value_qwk = qwk
-                    torch.save(network, model_path)
+            if value_loss < min_value_loss:
+                min_value_loss = value_loss
+                torch.save(network, model_path_loss)
+            if qwk > max_value_qwk:
+                max_value_qwk = qwk
+                torch.save(network, model_path_qwk)
 
 
 def test(test_input, test_label):
-    network = torch.load(model_path)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    network = network.to(device)
+    model_paths = [model_path_loss, model_path_qwk]
+    for model_path in model_paths:
+        network = torch.load(model_path)
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        network = network.to(device)
 
-    with torch.no_grad():
-        test_input, test_label = test_input.to(device), test_label.to(device)
+        with torch.no_grad():
+            test_input, test_label = test_input.to(device), test_label.to(device)
 
-        test_dataset = data.TensorDataset(test_input, test_label)
-        test_loader = data.DataLoader(
-            dataset=test_dataset,
-            batch_size=config.batch_size,
-            shuffle=True,
-            num_workers=0,
-        )
+            test_dataset = data.TensorDataset(test_input, test_label)
+            test_loader = data.DataLoader(
+                dataset=test_dataset,
+                batch_size=config.batch_size,
+                shuffle=True,
+                num_workers=0,
+            )
 
-        step_cnt = 0
-        loss_sum = 0
-        qwk_sum = 0
+            step_cnt = 0
+            loss_sum = 0
+            qwk_sum = 0
 
-        for step, (batch_input, batch_label) in enumerate(test_loader):
-            if batch_label.shape[0] < config.batch_size:
-                continue
+            for step, (batch_input, batch_label) in enumerate(test_loader):
+                if batch_label.shape[0] < config.batch_size:
+                    continue
 
-            step_cnt += 1
-            batch_input, batch_label = batch_input.to(device), batch_label.to(device)
-            out = network(batch_input)
-            out = torch.mul(out, config.essay_grade_num)
-            out = torch.floor(out)
-            y_pred = out.long()
-            batch_label = torch.mul(batch_label, config.essay_grade_num).long()
-            qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
-            qwk_sum += qwk
+                step_cnt += 1
+                batch_input, batch_label = batch_input.to(device), batch_label.to(device)
+                out = network(batch_input)
+                out = torch.mul(out, config.essay_grade_num)
+                out = torch.floor(out)
+                y_pred = out.long()
+                batch_label = torch.mul(batch_label, config.essay_grade_num).long()
+                qwk = quadratic_weighted_kappa(y_pred, batch_label, config.essay_grade_num)
+                qwk_sum += qwk
 
-        qwk = qwk_sum / step_cnt
+            qwk = qwk_sum / step_cnt
 
-        print('test_qwk = ', format(qwk, '.3f'), sep='')
-        print('--------------------------------------------')
+            print('test_qwk = ', format(qwk, '.3f'), sep='')
+            print('--------------------------------------------')
 
 
 def main():
