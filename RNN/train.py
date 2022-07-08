@@ -34,11 +34,14 @@ def train(train_input, train_label, value_input, value_label):
     optimizer = torch.optim.Adam(network.parameters(), lr=config.lr)
     loss_func = nn.MSELoss()
 
+    max_value_qwk = 0
+    min_value_loss = 1e5
+
     for epoch in range(config.epoch_num):
         step_cnt = 0
         train_loss = 0
         train_qwk = 0
-        max_value_qwk = 0
+
         for step, (batch_input, batch_label) in enumerate(train_loader):
             if batch_label.shape[0] < config.batch_size:
                 continue
@@ -113,9 +116,14 @@ def train(train_input, train_label, value_input, value_label):
                   ', value_qwk = ', format(qwk, '.3f'), sep='')
             print('--------------------------------------------')
 
-            if qwk > max_value_qwk:
-                max_value_qwk = qwk
-                torch.save(network, model_path)
+            if config.loss_first == True:
+                if value_loss < min_value_loss:
+                    min_value_loss = value_loss
+                    torch.save(network, model_path)
+            else:
+                if qwk > max_value_qwk:
+                    max_value_qwk = qwk
+                    torch.save(network, model_path)
 
 
 def test(test_input, test_label):

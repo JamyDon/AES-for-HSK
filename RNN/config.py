@@ -1,4 +1,5 @@
 class config:
+    loss_first = True
     epoch_num = 20
     batch_size = 100
     lr = 0.001
